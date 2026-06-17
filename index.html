@@ -149,28 +149,31 @@
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
-    <div class="relative z-10 w-full max-w-6xl mx-auto h-[90vh] flex flex-col">
+    <!-- MOBILE FIX: Adjusted height and padding for vertical screens -->
+    <div class="relative z-10 w-full max-w-6xl mx-auto min-h-screen md:min-h-0 md:h-[90vh] flex flex-col py-6 md:py-0">
         
         <!-- Header -->
-        <header class="flex justify-between items-end mb-6 border-b border-spy-border pb-4">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 border-b border-spy-border pb-4 gap-4 md:gap-0">
             <div>
-                <h1 class="text-3xl md:text-4xl font-mono text-white tracking-widest uppercase flex items-center gap-3">
+                <h1 class="text-2xl md:text-4xl font-mono text-white tracking-widest uppercase flex items-center gap-3">
                     <i class="ph-fill ph-crosshair text-spy-blue animate-pulse"></i>
                     Operation Matrix
                 </h1>
-                <p class="font-mono text-spy-text text-sm mt-1 tracking-wider opacity-70">CLASSIFIED DOSSIER // AGENT TASKING SYSTEM</p>
+                <p class="font-mono text-spy-text text-xs md:text-sm mt-1 tracking-wider opacity-70">CLASSIFIED DOSSIER // AGENT TASKING SYSTEM</p>
             </div>
-            <div class="text-right hidden md:block">
+            <div class="text-left md:text-right">
                 <p class="font-mono text-spy-blue text-sm" id="clock">00:00:00</p>
-                <p class="font-mono text-xs text-spy-gray mt-1">SECURE CONNECTION ESTABLISHED</p>
+                <p class="font-mono text-xs text-spy-gray mt-1 hidden md:block">SECURE CONNECTION ESTABLISHED</p>
             </div>
         </header>
 
         <!-- Matrix Grid -->
-        <main class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow h-full overflow-hidden">
+        <!-- MOBILE FIX: Allowed vertical scrolling on mobile -->
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow h-full overflow-y-auto md:overflow-hidden pb-20 md:pb-0 pr-2 custom-scrollbar">
             
             <!-- Q1: Urgent & Important (DO) -->
-            <div class="quadrant flex flex-col bg-spy-panel border border-spy-border hover:border-spy-red/50 hover:shadow-glow-red transition-all duration-300 relative group corner-borders">
+            <!-- MOBILE FIX: Added min-h-[300px] so it isn't crushed on phones -->
+            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-red/50 hover:shadow-glow-red transition-all duration-300 relative group corner-borders">
                 <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-red/10 to-transparent cursor-pointer" onclick="openModal('q1')">
                     <h2 class="font-mono text-spy-red font-bold tracking-widest uppercase flex items-center gap-2">
                         <i class="ph ph-warning-circle text-xl"></i> Execute Immediate
@@ -188,7 +191,7 @@
             </div>
 
             <!-- Q2: Not Urgent & Important (SCHEDULE) -->
-            <div class="quadrant flex flex-col bg-spy-panel border border-spy-border hover:border-spy-blue/50 hover:shadow-glow-blue transition-all duration-300 relative group corner-borders" style="border-color: #222;">
+            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-blue/50 hover:shadow-glow-blue transition-all duration-300 relative group corner-borders" style="border-color: #222;">
                 <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-blue/10 to-transparent cursor-pointer" onclick="openModal('q2')">
                     <h2 class="font-mono text-spy-blue font-bold tracking-widest uppercase flex items-center gap-2">
                         <i class="ph ph-calendar-check text-xl"></i> Strategic Planning
@@ -206,7 +209,7 @@
             </div>
 
             <!-- Q3: Urgent & Not Important (DELEGATE) -->
-            <div class="quadrant flex flex-col bg-spy-panel border border-spy-border hover:border-spy-yellow/50 hover:shadow-glow-yellow transition-all duration-300 relative group corner-borders">
+            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-yellow/50 hover:shadow-glow-yellow transition-all duration-300 relative group corner-borders">
                 <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-yellow/10 to-transparent cursor-pointer" onclick="openModal('q3')">
                     <h2 class="font-mono text-spy-yellow font-bold tracking-widest uppercase flex items-center gap-2">
                         <i class="ph ph-users-three text-xl"></i> Delegate/Transfer
@@ -224,7 +227,7 @@
             </div>
 
             <!-- Q4: Not Urgent & Not Important (DELETE) -->
-            <div class="quadrant flex flex-col bg-spy-panel border border-spy-border hover:border-spy-gray/80 hover:shadow-glow-gray transition-all duration-300 relative group corner-borders">
+            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-gray/80 hover:shadow-glow-gray transition-all duration-300 relative group corner-borders">
                 <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-gray/20 to-transparent cursor-pointer" onclick="openModal('q4')">
                     <h2 class="font-mono text-spy-gray font-bold tracking-widest uppercase flex items-center gap-2 text-white/70">
                         <i class="ph ph-trash text-xl"></i> Eliminate/Discard
@@ -275,36 +278,98 @@
         </div>
     </div>
 
-    <script>
+    <!-- CLOUD SYNC LOGIC ADDED -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // State management
         let tasks = [];
         const storageKey = 'mi6_eisenhower_tasks';
+        
+        let isCloudSyncActive = false;
+        let userId = null;
+        let db, auth;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mi6-matrix-app';
 
-        // Load tasks from LocalStorage on initialization
-        function init() {
+        // ==========================================
+        // DATABASE CONFIGURATION
+        // ==========================================
+        let firebaseConfig = null;
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            // IF YOU CREATE A FIREBASE DATABASE IN THE FUTURE, REPLACE "null" WITH YOUR CONFIG BLOCK!
+            firebaseConfig = null; 
+            /* Example:
+            firebaseConfig = {
+                apiKey: "AlzaSyXXXXX...",
+                authDomain: "your-app.firebaseapp.com",
+                projectId: "your-app",
+                // ...
+            };
+            */
+        }
+
+        async function init() {
+            try {
+                if (!firebaseConfig) throw new Error("No database configured.");
+
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (token) {
+                    await signInWithCustomToken(auth, token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                userId = auth.currentUser.uid;
+                isCloudSyncActive = true;
+                setupRealtimeSync();
+
+            } catch (error) {
+                // If there's no Firebase config, silently fall back to local storage
+                initLocalStorage();
+            }
+            
+            startClock();
+        }
+
+        function setupRealtimeSync() {
+            const tasksRef = collection(db, 'artifacts', appId, 'users', userId, 'tasks');
+            onSnapshot(tasksRef, (snapshot) => {
+                tasks = [];
+                snapshot.forEach(doc => {
+                    tasks.push({ id: doc.id, ...doc.data() });
+                });
+                renderAllTasks();
+            }, (error) => {
+                console.error("Transmission error:", error);
+                initLocalStorage(); // Fallback if connection fails
+            });
+        }
+
+        // Load tasks from LocalStorage
+        function initLocalStorage() {
             const savedTasks = localStorage.getItem(storageKey);
             if (savedTasks) {
                 tasks = JSON.parse(savedTasks);
             } else {
-                // Default sample data for first-time visitors to demonstrate the UI
-                tasks = [
-                    { id: 1, text: "Infiltrate enemy server facility and extract mainframe data.", quadrant: 'q1', timestamp: Date.now() },
-                    { id: 2, text: "Renew forged passport and coordinate rendezvous with contact.", quadrant: 'q2', timestamp: Date.now() - 1000 },
-                    { id: 3, text: "Review standard agency protocol updates.", quadrant: 'q3', timestamp: Date.now() - 2000 },
-                    { id: 4, text: "Read Q-Branch gadget magazine.", quadrant: 'q4', timestamp: Date.now() - 3000 }
-                ];
-                saveTasks();
+                tasks = [];
             }
             renderAllTasks();
-            startClock();
         }
 
-        // Save tasks to LocalStorage
         function saveTasks() {
-            localStorage.setItem(storageKey, JSON.stringify(tasks));
+            if (!isCloudSyncActive) {
+                localStorage.setItem(storageKey, JSON.stringify(tasks));
+            }
         }
 
-        // Clock function for aesthetic
         function startClock() {
             const clockEl = document.getElementById('clock');
             setInterval(() => {
@@ -327,17 +392,16 @@
             'q4': { name: 'Eliminate/Discard', color: 'text-spy-gray', border: 'border-spy-gray', shadow: 'shadow-glow-gray' }
         };
 
-        function openModal(quadrant) {
+        // Attach to Window object so HTML buttons can click them
+        window.openModal = function(quadrant) {
             quadrantInput.value = quadrant;
             taskInput.value = '';
             
-            // Style modal based on quadrant
             const config = quadrantConfig[quadrant];
             modalTitle.innerHTML = `<i class="ph-fill ph-terminal-window"></i> INPUT: ${config.name}`;
             modalTitle.className = `font-mono ${config.color} text-xl mb-4 uppercase tracking-widest flex items-center gap-2`;
             modalContent.className = `bg-spy-panel border ${config.border} p-6 w-full max-w-md ${config.shadow} relative transform transition-all duration-300 scale-100 opacity-100`;
             
-            // Adjust border colors of decorative corners
             const corners = modalContent.querySelectorAll('div[class^="absolute"]');
             corners.forEach(corner => {
                 corner.className = corner.className.replace(/border-spy-\w+/, config.border.split('-')[1] + '-' + config.border.split('-')[2]);
@@ -346,66 +410,83 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
-            // Small timeout to allow display:flex to apply before transition
             setTimeout(() => {
                 taskInput.focus();
             }, 50);
-        }
+        };
 
-        function closeModal() {
+        window.closeModal = function() {
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
-            }, 300); // Wait for transition
-        }
+            }, 300);
+        };
 
-        // Handle Escape key to close modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                closeModal();
+                window.closeModal();
             }
         });
 
-        // Handle Enter to submit
         taskInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                addTask();
+                window.addTask();
             }
         });
 
         // Task Management
-        function addTask() {
+        window.addTask = async function() {
             const text = taskInput.value.trim();
             const quadrant = quadrantInput.value;
 
-            if (!text) return; // Don't add empty tasks
+            if (!text) return;
 
+            const taskId = Date.now().toString();
             const newTask = {
-                id: Date.now(),
                 text: text,
                 quadrant: quadrant,
                 timestamp: Date.now()
             };
 
-            tasks.push(newTask);
-            saveTasks();
-            renderQuadrant(quadrant);
-            closeModal();
-        }
-
-        function deleteTask(id) {
-            // Find quadrant before deleting to re-render properly
-            const task = tasks.find(t => t.id === id);
-            if (!task) return;
+            if (isCloudSyncActive) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'tasks', taskId);
+                    await setDoc(docRef, newTask);
+                } catch (e) {
+                    console.error("Cloud saving failed", e);
+                }
+            } else {
+                newTask.id = taskId;
+                tasks.push(newTask);
+                saveTasks();
+                renderQuadrant(quadrant);
+            }
             
-            const quadrant = task.quadrant;
-            tasks = tasks.filter(t => t.id !== id);
-            saveTasks();
-            renderQuadrant(quadrant);
-        }
+            window.closeModal();
+        };
+
+        window.deleteTask = async function(id) {
+            id = id.toString();
+            if (isCloudSyncActive) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'tasks', id);
+                    await deleteDoc(docRef);
+                } catch (e) {
+                    console.error("Cloud deletion failed", e);
+                }
+            } else {
+                const task = tasks.find(t => t.id === id);
+                if (!task) return;
+                
+                const quadrant = task.quadrant;
+                tasks = tasks.filter(t => t.id !== id);
+                saveTasks();
+                renderQuadrant(quadrant);
+            }
+        };
 
         function renderAllTasks() {
             ['q1', 'q2', 'q3', 'q4'].forEach(q => renderQuadrant(q));
@@ -413,10 +494,10 @@
 
         function renderQuadrant(quadrant) {
             const container = document.getElementById(`list-${quadrant}`);
-            container.innerHTML = ''; // Clear current list
+            container.innerHTML = ''; 
 
             const quadrantTasks = tasks.filter(t => t.quadrant === quadrant)
-                                      .sort((a, b) => b.timestamp - a.timestamp); // Newest first
+                                      .sort((a, b) => b.timestamp - a.timestamp); 
 
             if (quadrantTasks.length === 0) {
                 container.innerHTML = `<div class="text-spy-gray font-mono text-xs opacity-50 text-center mt-4 border border-dashed border-spy-border p-4">NO ACTIVE OBJECTIVES</div>`;
@@ -434,7 +515,6 @@
                 const el = document.createElement('div');
                 el.className = `task-enter group bg-black/40 border-l-2 ${colors[quadrant]} p-3 pr-10 relative flex flex-col transition-all duration-200`;
                 
-                // Add tiny visual details
                 const date = new Date(task.timestamp);
                 const timeString = `${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}HRS`;
 
@@ -444,17 +524,15 @@
                         <span>${timeString}</span>
                     </div>
                     <p class="text-sm font-sans leading-relaxed text-shadow-sm">${escapeHTML(task.text)}</p>
-                    <button onclick="deleteTask(${task.id})" class="absolute right-3 top-1/2 -translate-y-1/2 text-spy-gray hover:text-spy-red opacity-0 group-hover:opacity-100 transition-all duration-200" title="Eliminate Objective">
+                    <button onclick="deleteTask('${task.id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-spy-gray hover:text-spy-red opacity-0 group-hover:opacity-100 transition-all duration-200" title="Eliminate Objective">
                         <i class="ph-bold ph-x-circle text-xl"></i>
                     </button>
-                    <!-- Decorative scanline inside task -->
                     <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[length:100%_4px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 `;
                 container.appendChild(el);
             });
         }
 
-        // Helper to prevent XSS
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, 
                 tag => ({
@@ -467,11 +545,9 @@
             );
         }
 
-        // Initialize application
         window.onload = () => {
             init();
             
-            // Register Service Worker only if hosted securely (like GitHub Pages)
             if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
                 navigator.serviceWorker.register('./sw.js').catch(err => console.log('PWA not active locally.'));
             }
