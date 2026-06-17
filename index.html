@@ -296,21 +296,15 @@
         // ==========================================
         // DATABASE CONFIGURATION
         // ==========================================
-        let firebaseConfig = null;
-        if (typeof __firebase_config !== 'undefined') {
-            firebaseConfig = JSON.parse(__firebase_config);
-        } else {
-            // IF YOU CREATE A FIREBASE DATABASE IN THE FUTURE, REPLACE "null" WITH YOUR CONFIG BLOCK!
-            firebaseConfig = null; 
-            /* Example:
-            firebaseConfig = {
-                apiKey: "AlzaSyXXXXX...",
-                authDomain: "your-app.firebaseapp.com",
-                projectId: "your-app",
-                // ...
-            };
-            */
-        }
+        const firebaseConfig = {
+    apiKey: "AIzaSyAYucsTFceFLrfZXoRgvQTzsEmWs87MMGQ",
+    authDomain: "operation-eisenhower.firebaseapp.com",
+    projectId: "operation-eisenhower",
+    storageBucket: "operation-eisenhower.firebasestorage.app",
+    messagingSenderId: "486693714834",
+    appId: "1:486693714834:web:fcdba6e3a91a0431075f4b",
+    measurementId: "G-7CPQ5V9RM6"
+  };
 
         async function init() {
             try {
