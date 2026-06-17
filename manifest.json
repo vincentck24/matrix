@@ -1,0 +1,17 @@
+{
+"name": "Eisenhower Matrix",
+"short_name": "Matrix",
+"description": "Classified Agent Tasking System",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#050505",
+"theme_color": "#050505",
+"icons": [
+{
+"src": "icon-512.svg",
+"sizes": "512x512",
+"type": "image/svg+xml",
+"purpose": "any maskable"
+}
+]
+}
