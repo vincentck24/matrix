@@ -2,14 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- MOBILE FIX: viewport-fit=cover enables iPhone safe-area insets (notch / home bar) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>CLASSIFIED // Eisenhower Matrix</title>
-    
+
     <!-- PWA App Links -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon-512.svg">
     <link rel="apple-touch-icon" href="icon-512.svg">
     <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -45,11 +48,32 @@
         }
     </script>
     <style>
+        html { -webkit-text-size-adjust: 100%; }
+
         body {
             background-color: #000;
             color: #d1d5db;
             margin: 0;
             overflow-x: hidden;
+            /* MOBILE FIX: dynamic viewport height avoids the iOS URL-bar jump */
+            min-height: 100vh;
+            min-height: 100dvh;
+            /* Padding handled here (not Tailwind) so we can add safe-area insets cleanly */
+            padding: 1rem;
+        }
+        @media (min-width: 1024px) {
+            body { padding: 2rem; }
+        }
+        /* MOBILE FIX: stacked, scrollable layout + iPhone safe areas + no input auto-zoom */
+        @media (max-width: 767px) {
+            body {
+                padding-left: calc(0.75rem + env(safe-area-inset-left));
+                padding-right: calc(0.75rem + env(safe-area-inset-right));
+                padding-top: calc(0.75rem + env(safe-area-inset-top));
+                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            }
+            /* 16px inputs stop iOS Safari from zooming in on focus */
+            #task-text, #sync-input { font-size: 16px !important; }
         }
 
         /* Subtle CRT Scanline Effect */
@@ -83,14 +107,14 @@
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #050505; 
+            background: #050505;
         }
         ::-webkit-scrollbar-thumb {
-            background: #333; 
+            background: #333;
             border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #555; 
+            background: #555;
         }
 
         /* Animations */
@@ -98,7 +122,7 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .task-enter {
             animation: fadeIn 0.3s ease-out forwards;
         }
@@ -129,7 +153,7 @@
             bottom: -1px; right: -1px;
             border-width: 0 2px 2px 0;
         }
-        
+
         .quadrant:hover .corner-borders::before {
             width: 30px; height: 30px;
         }
@@ -143,17 +167,18 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased min-h-screen flex flex-col items-center justify-center p-4 lg:p-8">
+<!-- MOBILE FIX: vertical centering only on desktop; on mobile content flows from the top and the page scrolls naturally -->
+<body class="font-sans antialiased flex flex-col items-center md:justify-center">
 
     <!-- Background effects -->
     <div class="scanlines"></div>
     <div class="vignette"></div>
 
-    <!-- MOBILE FIX: Adjusted height and padding for vertical screens -->
-    <div class="relative z-10 w-full max-w-6xl mx-auto min-h-screen md:min-h-0 md:h-[90vh] flex flex-col py-6 md:py-0">
-        
+    <!-- MOBILE FIX: height is content-driven on mobile (grows + page scrolls); fixed dashboard height on desktop -->
+    <div class="relative z-10 w-full max-w-6xl mx-auto flex flex-col md:h-[90vh]">
+
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 border-b border-spy-border pb-4 gap-4 md:gap-0">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 border-b border-spy-border pb-4 gap-3 md:gap-0 shrink-0">
             <div>
                 <h1 class="text-2xl md:text-4xl font-mono text-white tracking-widest uppercase flex items-center gap-3">
                     <i class="ph-fill ph-crosshair text-spy-blue animate-pulse"></i>
@@ -161,85 +186,91 @@
                 </h1>
                 <p class="font-mono text-spy-text text-xs md:text-sm mt-1 tracking-wider opacity-70">CLASSIFIED DOSSIER // AGENT TASKING SYSTEM</p>
             </div>
-            <div class="text-left md:text-right">
+            <div class="text-left md:text-right w-full md:w-auto">
                 <p class="font-mono text-spy-blue text-sm" id="clock">00:00:00</p>
-                <p class="font-mono text-xs text-spy-gray mt-1 hidden md:block">SECURE CONNECTION ESTABLISHED</p>
+                <!-- Sync status / dossier control (tap to link or change codename) -->
+                <button id="dossier-chip" onclick="openSyncModal()" title="Manage secure dossier"
+                        class="mt-1 inline-flex items-center gap-2 font-mono text-[11px] md:text-xs tracking-wider text-spy-gray hover:text-white border border-spy-border hover:border-spy-blue/60 px-2 py-1 transition-colors">
+                    <span id="sync-dot" class="text-spy-gray">&#9679;</span>
+                    <span id="sync-status">INITIALIZING&hellip;</span>
+                </button>
             </div>
         </header>
 
         <!-- Matrix Grid -->
-        <!-- MOBILE FIX: Allowed vertical scrolling on mobile -->
-        <main class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow h-full overflow-y-auto md:overflow-hidden pb-20 md:pb-0 pr-2 custom-scrollbar">
-            
+        <!-- MOBILE FIX: simple stacked grid that grows with content (page scrolls). Desktop: fills the dashboard and clips so each quadrant scrolls internally -->
+        <main class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2 md:pb-0 md:flex-grow md:min-h-0 md:overflow-hidden">
+
             <!-- Q1: Urgent & Important (DO) -->
-            <!-- MOBILE FIX: Added min-h-[300px] so it isn't crushed on phones -->
-            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-red/50 hover:shadow-glow-red transition-all duration-300 relative group corner-borders">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-red/10 to-transparent cursor-pointer" onclick="openModal('q1')">
-                    <h2 class="font-mono text-spy-red font-bold tracking-widest uppercase flex items-center gap-2">
+            <!-- MOBILE FIX: min-h keeps the panel substantial on phones; md:min-h-0 lets it flex on desktop -->
+            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-red/50 hover:shadow-glow-red transition-all duration-300 relative group corner-borders">
+                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-red/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q1')">
+                    <h2 class="font-mono text-spy-red font-bold tracking-widest uppercase flex items-center gap-2 text-sm md:text-base">
                         <i class="ph ph-warning-circle text-xl"></i> Execute Immediate
                     </h2>
                     <button class="text-spy-red hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4">
+                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
                     [URGENT + IMPORTANT] // Do it now. Crises, deadlines, critical problems.
                 </div>
-                <div class="flex-grow overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q1">
+                <!-- MOBILE FIX: list grows naturally on mobile; only scrolls internally on desktop (md:overflow-y-auto) -->
+                <div class="flex-grow md:min-h-0 md:overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q1">
                     <!-- Tasks will be injected here -->
                 </div>
             </div>
 
             <!-- Q2: Not Urgent & Important (SCHEDULE) -->
-            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-blue/50 hover:shadow-glow-blue transition-all duration-300 relative group corner-borders" style="border-color: #222;">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-blue/10 to-transparent cursor-pointer" onclick="openModal('q2')">
-                    <h2 class="font-mono text-spy-blue font-bold tracking-widest uppercase flex items-center gap-2">
+            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-blue/50 hover:shadow-glow-blue transition-all duration-300 relative group corner-borders">
+                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-blue/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q2')">
+                    <h2 class="font-mono text-spy-blue font-bold tracking-widest uppercase flex items-center gap-2 text-sm md:text-base">
                         <i class="ph ph-calendar-check text-xl"></i> Strategic Planning
                     </h2>
                     <button class="text-spy-blue hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4">
+                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
                     [NOT URGENT + IMPORTANT] // Schedule it. Strategy, relationships, growth.
                 </div>
-                <div class="flex-grow overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q2">
+                <div class="flex-grow md:min-h-0 md:overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q2">
                     <!-- Tasks will be injected here -->
                 </div>
             </div>
 
             <!-- Q3: Urgent & Not Important (DELEGATE) -->
-            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-yellow/50 hover:shadow-glow-yellow transition-all duration-300 relative group corner-borders">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-yellow/10 to-transparent cursor-pointer" onclick="openModal('q3')">
-                    <h2 class="font-mono text-spy-yellow font-bold tracking-widest uppercase flex items-center gap-2">
+            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-yellow/50 hover:shadow-glow-yellow transition-all duration-300 relative group corner-borders">
+                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-yellow/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q3')">
+                    <h2 class="font-mono text-spy-yellow font-bold tracking-widest uppercase flex items-center gap-2 text-sm md:text-base">
                         <i class="ph ph-users-three text-xl"></i> Delegate/Transfer
                     </h2>
                     <button class="text-spy-yellow hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4">
+                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
                     [URGENT + NOT IMPORTANT] // Delegate it. Interruptions, meetings, requests.
                 </div>
-                <div class="flex-grow overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q3">
+                <div class="flex-grow md:min-h-0 md:overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q3">
                     <!-- Tasks will be injected here -->
                 </div>
             </div>
 
             <!-- Q4: Not Urgent & Not Important (DELETE) -->
-            <div class="quadrant flex flex-col min-h-[300px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-gray/80 hover:shadow-glow-gray transition-all duration-300 relative group corner-borders">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-gray/20 to-transparent cursor-pointer" onclick="openModal('q4')">
-                    <h2 class="font-mono text-spy-gray font-bold tracking-widest uppercase flex items-center gap-2 text-white/70">
+            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-gray/80 hover:shadow-glow-gray transition-all duration-300 relative group corner-borders">
+                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-gray/20 to-transparent cursor-pointer shrink-0" onclick="openModal('q4')">
+                    <h2 class="font-mono text-spy-gray font-bold tracking-widest uppercase flex items-center gap-2 text-white/70 text-sm md:text-base">
                         <i class="ph ph-trash text-xl"></i> Eliminate/Discard
                     </h2>
                     <button class="text-spy-gray hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4">
+                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
                     [NOT URGENT + NOT IMPORTANT] // Avoid it. Distractions, time wasters.
                 </div>
-                <div class="flex-grow overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q4">
+                <div class="flex-grow md:min-h-0 md:overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q4">
                     <!-- Tasks will be injected here -->
                 </div>
             </div>
@@ -248,7 +279,7 @@
     </div>
 
     <!-- Input Modal -->
-    <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay bg-black/60">
+    <div id="modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay bg-black/60 p-4">
         <div class="bg-spy-panel border border-spy-blue p-6 w-full max-w-md shadow-glow-blue relative transform transition-all scale-95 opacity-0" id="modal-content">
             <!-- Modal decorative corners -->
             <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-spy-blue"></div>
@@ -259,14 +290,14 @@
             <h3 class="font-mono text-spy-blue text-xl mb-4 uppercase tracking-widest flex items-center gap-2" id="modal-title">
                 <i class="ph-fill ph-terminal-window"></i> Data Entry
             </h3>
-            
+
             <input type="hidden" id="task-quadrant">
-            
+
             <div class="mb-6 relative">
                 <label for="task-text" class="block font-mono text-xs text-spy-gray mb-2">OBJECTIVE DETAILS:</label>
-                <textarea id="task-text" rows="3" class="w-full bg-black/50 border border-spy-border focus:border-spy-blue text-white p-3 font-sans text-sm focus:outline-none focus:ring-1 focus:ring-spy-blue transition-colors resize-none placeholder-spy-gray/50" placeholder="Enter classified intel here..."></textarea>
+                <textarea id="task-text" rows="3" class="w-full bg-black/50 border border-spy-border focus:border-spy-blue text-white p-3 font-sans text-base md:text-sm focus:outline-none focus:ring-1 focus:ring-spy-blue transition-colors resize-none placeholder-spy-gray/50" placeholder="Enter classified intel here..."></textarea>
             </div>
-            
+
             <div class="flex justify-end gap-3 font-mono">
                 <button onclick="closeModal()" class="px-4 py-2 text-spy-gray hover:text-white border border-transparent hover:border-spy-gray transition-colors uppercase text-sm">
                     Abort
@@ -278,92 +309,183 @@
         </div>
     </div>
 
-    <!-- CLOUD SYNC LOGIC ADDED -->
+    <!-- Secure Dossier (cloud sync) Modal -->
+    <div id="sync-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay bg-black/70 p-4">
+        <div class="bg-spy-panel border border-spy-blue p-6 w-full max-w-md shadow-glow-blue relative">
+            <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-spy-blue"></div>
+            <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-spy-blue"></div>
+            <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-spy-blue"></div>
+            <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-spy-blue"></div>
+
+            <h3 class="font-mono text-spy-blue text-xl mb-3 uppercase tracking-widest flex items-center gap-2">
+                <i class="ph-fill ph-fingerprint"></i> Secure Dossier Link
+            </h3>
+            <p class="font-mono text-xs text-spy-gray mb-4 leading-relaxed">
+                Enter your <span class="text-spy-blue">AGENT CODENAME</span> to sync this device.
+                Use the <span class="text-white">same codename</span> on your phone and desktop to share one dossier.
+            </p>
+
+            <label for="sync-input" class="block font-mono text-xs text-spy-gray mb-2">AGENT CODENAME:</label>
+            <div class="flex gap-2">
+                <input id="sync-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                       class="flex-grow bg-black/50 border border-spy-border focus:border-spy-blue text-white p-3 font-mono text-base md:text-sm tracking-widest uppercase focus:outline-none focus:ring-1 focus:ring-spy-blue transition-colors placeholder-spy-gray/50"
+                       placeholder="NIGHTHAWK-7F3A">
+                <button onclick="generateCode()" title="Generate codename"
+                        class="px-3 border border-spy-border text-spy-gray hover:text-spy-blue hover:border-spy-blue transition-colors">
+                    <i class="ph ph-dice-five text-xl"></i>
+                </button>
+            </div>
+            <p id="sync-error" class="hidden text-spy-red font-mono text-xs mt-2"></p>
+
+            <div class="flex items-center gap-3 mt-6 font-mono">
+                <button id="sync-disconnect" onclick="disconnectDossier()"
+                        class="hidden px-3 py-2 text-spy-red/80 hover:text-spy-red border border-transparent hover:border-spy-red/50 transition-colors uppercase text-xs">
+                    Disconnect
+                </button>
+                <div class="flex gap-3 ml-auto">
+                    <button onclick="closeSyncModal()" class="px-4 py-2 text-spy-gray hover:text-white border border-transparent hover:border-spy-gray transition-colors uppercase text-sm">
+                        Cancel
+                    </button>
+                    <button onclick="submitSyncCode()" class="px-4 py-2 bg-spy-blue/10 text-spy-blue border border-spy-blue hover:bg-spy-blue hover:text-black transition-all uppercase text-sm font-bold flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
+                        <i class="ph-bold ph-link"></i> Establish Uplink
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CLOUD SYNC + APP LOGIC ================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // State management
-        let tasks = [];
-        const storageKey = 'mi6_eisenhower_tasks';
-        
-        let isCloudSyncActive = false;
-        let userId = null;
-        let db, auth;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mi6-matrix-app';
-
         // ==========================================
-        // DATABASE CONFIGURATION
+        // DATABASE CONFIGURATION  (web API keys are safe to expose; access is controlled by Firestore Rules)
         // ==========================================
         const firebaseConfig = {
-    apiKey: "AIzaSyAYucsTFceFLrfZXoRgvQTzsEmWs87MMGQ",
-    authDomain: "operation-eisenhower.firebaseapp.com",
-    projectId: "operation-eisenhower",
-    storageBucket: "operation-eisenhower.firebasestorage.app",
-    messagingSenderId: "486693714834",
-    appId: "1:486693714834:web:fcdba6e3a91a0431075f4b",
-    measurementId: "G-7CPQ5V9RM6"
-  };
+            apiKey: "AIzaSyAYucsTFceFLrfZXoRgvQTzsEmWs87MMGQ",
+            authDomain: "operation-eisenhower.firebaseapp.com",
+            projectId: "operation-eisenhower",
+            storageBucket: "operation-eisenhower.firebasestorage.app",
+            messagingSenderId: "486693714834",
+            appId: "1:486693714834:web:fcdba6e3a91a0431075f4b",
+            measurementId: "G-7CPQ5V9RM6"
+        };
 
-        async function init() {
+        // ---- State ----
+        let tasks = [];
+        let db, auth;
+        let cloudReady = false;     // Firebase initialised AND anonymous sign-in succeeded
+        let agentCode = null;       // current shared dossier codename
+        let unsubscribe = null;     // active Firestore realtime listener
+        const CODE_KEY = 'mi6_agent_code';
+        const LOCAL_KEY = 'mi6_eisenhower_tasks';
+
+        // ---- Boot ----
+        window.onload = () => {
+            startClock();
+            bootSync();
+
+            if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('PWA not active locally.'));
+            }
+        };
+
+        async function bootSync() {
             try {
-                if (!firebaseConfig) throw new Error("No database configured.");
-
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                
-                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (token) {
-                    await signInWithCustomToken(auth, token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                
-                userId = auth.currentUser.uid;
-                isCloudSyncActive = true;
-                setupRealtimeSync();
 
+                // Anonymous sign-in only satisfies the security rule "must be signed in".
+                // The DATA is keyed by the shared codename, NOT by this anonymous UID,
+                // which is what lets two different devices see the same dossier.
+                await signInAnonymously(auth);
+                cloudReady = true;
+
+                const savedCode = localStorage.getItem(CODE_KEY);
+                if (savedCode) {
+                    connectDossier(savedCode);
+                } else {
+                    setStatus('standby');
+                    openSyncModal();   // first run: ask for a codename
+                }
             } catch (error) {
-                // If there's no Firebase config, silently fall back to local storage
-                initLocalStorage();
+                // Most common cause: Anonymous sign-in not enabled in the Firebase console,
+                // or the domain isn't authorised. We surface it instead of failing silently.
+                console.error('Cloud uplink failed:', error);
+                cloudReady = false;
+                setStatus('local');
+                loadLocal();
             }
-            
-            startClock();
         }
 
-        function setupRealtimeSync() {
-            const tasksRef = collection(db, 'artifacts', appId, 'users', userId, 'tasks');
-            onSnapshot(tasksRef, (snapshot) => {
+        // ---- Dossier (shared codename) connection ----
+        window.connectDossier = function(code) {
+            agentCode = code;
+            localStorage.setItem(CODE_KEY, code);
+            setStatus('cloud');
+
+            if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+
+            const tasksRef = collection(db, 'dossiers', agentCode, 'tasks');
+            unsubscribe = onSnapshot(tasksRef, (snapshot) => {
                 tasks = [];
-                snapshot.forEach(doc => {
-                    tasks.push({ id: doc.id, ...doc.data() });
-                });
+                snapshot.forEach(d => tasks.push({ id: d.id, ...d.data() }));
                 renderAllTasks();
             }, (error) => {
-                console.error("Transmission error:", error);
-                initLocalStorage(); // Fallback if connection fails
+                console.error('Transmission error:', error);
+                setStatus('error');
             });
-        }
+        };
 
-        // Load tasks from LocalStorage
-        function initLocalStorage() {
-            const savedTasks = localStorage.getItem(storageKey);
-            if (savedTasks) {
-                tasks = JSON.parse(savedTasks);
-            } else {
-                tasks = [];
-            }
+        window.disconnectDossier = function() {
+            if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+            agentCode = null;
+            localStorage.removeItem(CODE_KEY);
+            tasks = [];
+            renderAllTasks();
+            setStatus('standby');
+            closeSyncModal();
+        };
+
+        // ---- Local fallback (offline / Firebase unavailable) ----
+        function loadLocal() {
+            const saved = localStorage.getItem(LOCAL_KEY);
+            tasks = saved ? JSON.parse(saved) : [];
             renderAllTasks();
         }
+        function saveLocal() {
+            localStorage.setItem(LOCAL_KEY, JSON.stringify(tasks));
+        }
 
-        function saveTasks() {
-            if (!isCloudSyncActive) {
-                localStorage.setItem(storageKey, JSON.stringify(tasks));
+        // ---- Status indicator ----
+        function setStatus(mode) {
+            const dot = document.getElementById('sync-dot');
+            const txt = document.getElementById('sync-status');
+            const chip = document.getElementById('dossier-chip');
+            chip.classList.remove('border-spy-blue/60', 'border-spy-red/60', 'border-spy-yellow/60');
+            if (mode === 'cloud') {
+                dot.className = 'text-spy-blue animate-pulse';
+                txt.textContent = 'UPLINK ACTIVE // ' + agentCode;
+                chip.classList.add('border-spy-blue/60');
+            } else if (mode === 'standby') {
+                dot.className = 'text-spy-yellow';
+                txt.textContent = 'NO DOSSIER — TAP TO LINK';
+                chip.classList.add('border-spy-yellow/60');
+            } else if (mode === 'local') {
+                dot.className = 'text-spy-red';
+                txt.textContent = 'LOCAL MODE — NO UPLINK';
+                chip.classList.add('border-spy-red/60');
+            } else if (mode === 'error') {
+                dot.className = 'text-spy-red animate-pulse';
+                txt.textContent = 'UPLINK ERROR — TAP TO RETRY';
+                chip.classList.add('border-spy-red/60');
             }
         }
 
+        // ---- Clock ----
         function startClock() {
             const clockEl = document.getElementById('clock');
             setInterval(() => {
@@ -372,7 +494,54 @@
             }, 1000);
         }
 
-        // Modal logic
+        // ==========================================
+        // Sync modal logic
+        // ==========================================
+        const syncModal = document.getElementById('sync-modal');
+        const syncInput = document.getElementById('sync-input');
+        const syncError = document.getElementById('sync-error');
+
+        window.openSyncModal = function() {
+            syncInput.value = agentCode || '';
+            syncError.classList.add('hidden');
+            document.getElementById('sync-disconnect').classList.toggle('hidden', !agentCode);
+            syncModal.classList.remove('hidden');
+            syncModal.classList.add('flex');
+            setTimeout(() => syncInput.focus(), 50);
+        };
+        window.closeSyncModal = function() {
+            syncModal.classList.add('hidden');
+            syncModal.classList.remove('flex');
+        };
+        window.generateCode = function() {
+            const words = ['NIGHTHAWK','VIPER','COBALT','MERIDIAN','PHANTOM','ONYX','FALCON','GLACIER','RAVEN','TEMPEST','ECHO','SABLE'];
+            const w = words[Math.floor(Math.random() * words.length)];
+            const hex = Math.random().toString(16).slice(2, 6).toUpperCase();
+            syncInput.value = `${w}-${hex}`;
+        };
+        window.submitSyncCode = function() {
+            // Sanitise to a safe Firestore document id (letters, numbers, dash, underscore)
+            const code = syncInput.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+            if (code.length < 4) {
+                syncError.textContent = 'CODENAME MUST BE AT LEAST 4 CHARACTERS (A-Z, 0-9, -, _).';
+                syncError.classList.remove('hidden');
+                return;
+            }
+            if (!cloudReady) {
+                syncError.textContent = 'CLOUD UPLINK OFFLINE — CHECK FIREBASE SETUP (see guide).';
+                syncError.classList.remove('hidden');
+                return;
+            }
+            connectDossier(code);
+            closeSyncModal();
+        };
+        syncInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); window.submitSyncCode(); }
+        });
+
+        // ==========================================
+        // Task input modal logic
+        // ==========================================
         const modal = document.getElementById('modal');
         const modalContent = document.getElementById('modal-content');
         const taskInput = document.getElementById('task-text');
@@ -386,16 +555,15 @@
             'q4': { name: 'Eliminate/Discard', color: 'text-spy-gray', border: 'border-spy-gray', shadow: 'shadow-glow-gray' }
         };
 
-        // Attach to Window object so HTML buttons can click them
         window.openModal = function(quadrant) {
             quadrantInput.value = quadrant;
             taskInput.value = '';
-            
+
             const config = quadrantConfig[quadrant];
             modalTitle.innerHTML = `<i class="ph-fill ph-terminal-window"></i> INPUT: ${config.name}`;
             modalTitle.className = `font-mono ${config.color} text-xl mb-4 uppercase tracking-widest flex items-center gap-2`;
             modalContent.className = `bg-spy-panel border ${config.border} p-6 w-full max-w-md ${config.shadow} relative transform transition-all duration-300 scale-100 opacity-100`;
-            
+
             const corners = modalContent.querySelectorAll('div[class^="absolute"]');
             corners.forEach(corner => {
                 corner.className = corner.className.replace(/border-spy-\w+/, config.border.split('-')[1] + '-' + config.border.split('-')[2]);
@@ -403,7 +571,7 @@
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
+
             setTimeout(() => {
                 taskInput.focus();
             }, 50);
@@ -419,8 +587,9 @@
         };
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                window.closeModal();
+            if (e.key === 'Escape') {
+                if (!modal.classList.contains('hidden')) window.closeModal();
+                if (!syncModal.classList.contains('hidden')) window.closeSyncModal();
             }
         });
 
@@ -431,67 +600,66 @@
             }
         });
 
-        // Task Management
+        // ==========================================
+        // Task management
+        // ==========================================
         window.addTask = async function() {
             const text = taskInput.value.trim();
             const quadrant = quadrantInput.value;
-
             if (!text) return;
 
             const taskId = Date.now().toString();
-            const newTask = {
-                text: text,
-                quadrant: quadrant,
-                timestamp: Date.now()
-            };
+            const newTask = { text: text, quadrant: quadrant, timestamp: Date.now() };
 
-            if (isCloudSyncActive) {
+            if (cloudReady && agentCode) {
                 try {
-                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'tasks', taskId);
-                    await setDoc(docRef, newTask);
+                    const docRef = doc(db, 'dossiers', agentCode, 'tasks', taskId);
+                    await setDoc(docRef, newTask);   // realtime listener will re-render
                 } catch (e) {
                     console.error("Cloud saving failed", e);
                 }
             } else {
                 newTask.id = taskId;
                 tasks.push(newTask);
-                saveTasks();
+                saveLocal();
                 renderQuadrant(quadrant);
             }
-            
+
             window.closeModal();
         };
 
         window.deleteTask = async function(id) {
             id = id.toString();
-            if (isCloudSyncActive) {
+            if (cloudReady && agentCode) {
                 try {
-                    const docRef = doc(db, 'artifacts', appId, 'users', userId, 'tasks', id);
-                    await deleteDoc(docRef);
+                    const docRef = doc(db, 'dossiers', agentCode, 'tasks', id);
+                    await deleteDoc(docRef);   // realtime listener will re-render
                 } catch (e) {
                     console.error("Cloud deletion failed", e);
                 }
             } else {
                 const task = tasks.find(t => t.id === id);
                 if (!task) return;
-                
                 const quadrant = task.quadrant;
                 tasks = tasks.filter(t => t.id !== id);
-                saveTasks();
+                saveLocal();
                 renderQuadrant(quadrant);
             }
         };
 
+        // ==========================================
+        // Rendering
+        // ==========================================
         function renderAllTasks() {
             ['q1', 'q2', 'q3', 'q4'].forEach(q => renderQuadrant(q));
         }
 
         function renderQuadrant(quadrant) {
             const container = document.getElementById(`list-${quadrant}`);
-            container.innerHTML = ''; 
+            container.innerHTML = '';
 
             const quadrantTasks = tasks.filter(t => t.quadrant === quadrant)
-                                      .sort((a, b) => b.timestamp - a.timestamp); 
+                                       .sort((a, b) => b.timestamp - a.timestamp);
 
             if (quadrantTasks.length === 0) {
                 container.innerHTML = `<div class="text-spy-gray font-mono text-xs opacity-50 text-center mt-4 border border-dashed border-spy-border p-4">NO ACTIVE OBJECTIVES</div>`;
@@ -508,7 +676,7 @@
 
                 const el = document.createElement('div');
                 el.className = `task-enter group bg-black/40 border-l-2 ${colors[quadrant]} p-3 pr-10 relative flex flex-col transition-all duration-200`;
-                
+
                 const date = new Date(task.timestamp);
                 const timeString = `${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}HRS`;
 
@@ -518,7 +686,7 @@
                         <span>${timeString}</span>
                     </div>
                     <p class="text-sm font-sans leading-relaxed text-shadow-sm">${escapeHTML(task.text)}</p>
-                    <button onclick="deleteTask('${task.id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-spy-gray hover:text-spy-red opacity-0 group-hover:opacity-100 transition-all duration-200" title="Eliminate Objective">
+                    <button onclick="deleteTask('${task.id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-spy-gray hover:text-spy-red opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200" title="Eliminate Objective">
                         <i class="ph-bold ph-x-circle text-xl"></i>
                     </button>
                     <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[length:100%_4px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -528,7 +696,7 @@
         }
 
         function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
+            return str.replace(/[&<>'"]/g,
                 tag => ({
                     '&': '&amp;',
                     '<': '&lt;',
@@ -538,14 +706,6 @@
                 }[tag] || tag)
             );
         }
-
-        window.onload = () => {
-            init();
-            
-            if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('PWA not active locally.'));
-            }
-        };
     </script>
 </body>
 </html>
