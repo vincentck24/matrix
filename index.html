@@ -1,7 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="spy">
 <head>
     <meta charset="UTF-8">
+    <script>
+        /* Apply the saved theme before first paint so there's no flash of the wrong theme. */
+        (function(){ try { document.documentElement.setAttribute('data-theme', localStorage.getItem('mi6_theme') || 'spy'); } catch(e){} })();
+    </script>
     <!-- MOBILE FIX: viewport-fit=cover enables iPhone safe-area insets (notch / home bar) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>CLASSIFIED // Eisenhower Matrix</title>
@@ -15,6 +19,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script>
@@ -127,6 +132,10 @@
             animation: fadeIn 0.3s ease-out forwards;
         }
 
+        /* Checklist circle is spy-hidden; the warm theme reveals it (see data-theme="clean") */
+        .task-check { display: none; }
+        .q-count { display: none; }
+
         /* Glitch text effect for hover */
         .glitch-hover:hover {
             text-shadow: 2px 0 #ff2a2a, -2px 0 #00f0ff;
@@ -165,6 +174,170 @@
         .modal-overlay {
             backdrop-filter: blur(4px);
         }
+
+        /* ============================================================
+           WARM theme (editorial, cream) — active when <html data-theme="clean">.
+           Layers over the spy markup without changing it, so the spy theme
+           stays byte-for-byte the same when data-theme="spy".
+           ============================================================ */
+        html[data-theme="clean"] { background: #f3eee2; }
+        html[data-theme="clean"] body {
+            background: #f3eee2 !important;
+            color: #2b2a26 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        /* Strip the spy set-dressing + elements the warm layout doesn't use */
+        html[data-theme="clean"] .scanlines,
+        html[data-theme="clean"] .vignette { display: none !important; }
+        html[data-theme="clean"] .corner-borders::before,
+        html[data-theme="clean"] .corner-borders::after { display: none !important; }
+        html[data-theme="clean"] .glitch-hover:hover { text-shadow: none !important; }
+        html[data-theme="clean"] .card-fx { display: none !important; }
+        html[data-theme="clean"] #clock { display: none !important; }
+        html[data-theme="clean"] #brand-icon { display: none !important; }
+        html[data-theme="clean"] .q-sub { display: none !important; }
+        html[data-theme="clean"] .task-x { display: none !important; }
+        html[data-theme="clean"] .q-head > button { display: none !important; }
+
+        /* Warm scrollbars */
+        html[data-theme="clean"] ::-webkit-scrollbar-track { background: transparent; }
+        html[data-theme="clean"] ::-webkit-scrollbar-thumb { background: #d8cfba; border-radius: 999px; }
+        html[data-theme="clean"] ::-webkit-scrollbar-thumb:hover { background: #c3b89e; }
+
+        /* Serif for display headings, sans for everything else */
+        html[data-theme="clean"] .font-mono { font-family: 'Inter', sans-serif !important; }
+        html[data-theme="clean"] h1,
+        html[data-theme="clean"] .q-head h2,
+        html[data-theme="clean"] #modal-title,
+        html[data-theme="clean"] #sync-modal h3 { font-family: 'Fraunces', Georgia, serif !important; }
+        html[data-theme="clean"] .uppercase { text-transform: none !important; }
+        html[data-theme="clean"] .tracking-widest,
+        html[data-theme="clean"] .tracking-wider { letter-spacing: normal !important; }
+
+        /* Header — greeting + date eyebrow (eyebrow sits above the greeting) */
+        html[data-theme="clean"] header { border-color: #e3dac7 !important; }
+        html[data-theme="clean"] #head-left { display: flex !important; flex-direction: column-reverse !important; align-items: flex-start !important; gap: 4px !important; }
+        html[data-theme="clean"] h1 {
+            color: #26251f !important; font-weight: 600 !important;
+            font-size: 2.25rem !important; line-height: 1.08 !important; letter-spacing: -0.01em !important;
+        }
+        html[data-theme="clean"] #app-subtitle {
+            color: #b4513a !important; opacity: 1 !important;
+            text-transform: uppercase !important; letter-spacing: 0.14em !important;
+            font-size: 0.72rem !important; font-weight: 500 !important; margin-top: 0 !important;
+        }
+        html[data-theme="clean"] #dossier-chip,
+        html[data-theme="clean"] #theme-toggle {
+            background: #faf7ef !important;
+            border: 1px solid #e3dac7 !important;
+            color: #6f6a5c !important;
+            border-radius: 999px !important;
+            box-shadow: none !important;
+        }
+        html[data-theme="clean"] #dossier-chip:hover,
+        html[data-theme="clean"] #theme-toggle:hover { color: #2b2a26 !important; border-color: #cfc4a9 !important; }
+
+        /* Quadrant cards */
+        html[data-theme="clean"] .quadrant {
+            background: #fbf8f1 !important;
+            border: 1px solid #e6ddc9 !important;
+            border-top: 2px solid #cabfa4 !important;
+            border-radius: 4px !important;
+            box-shadow: none !important;
+        }
+        html[data-theme="clean"] .quadrant:hover { border-color: #d9cfb6 !important; }
+        html[data-theme="clean"] .quadrant.q1 { border-top-color: #b4513a !important; }
+        html[data-theme="clean"] .quadrant.q2 { border-top-color: #4f6b4f !important; }
+        html[data-theme="clean"] .quadrant.q3 { border-top-color: #cabfa4 !important; }
+        html[data-theme="clean"] .quadrant.q4 { border-top-color: #cabfa4 !important; }
+        html[data-theme="clean"] .q-head {
+            background: transparent !important;
+            border-color: transparent !important;
+            border-radius: 0 !important;
+            padding-bottom: 2px !important;
+        }
+        html[data-theme="clean"] .q-head h2 {
+            font-weight: 600 !important; font-size: 1.35rem !important; color: #26251f !important; letter-spacing: -0.01em !important;
+        }
+        html[data-theme="clean"] .q-head h2 i { display: none !important; }
+        html[data-theme="clean"] .q-count {
+            display: inline-block !important;
+            color: #b1a78f !important; font-size: 0.85rem !important; font-weight: 500 !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        /* Task rows — checklist style (leading circle + text) */
+        html[data-theme="clean"] .task-card {
+            background: transparent !important;
+            border: none !important;
+            border-radius: 6px !important;
+            box-shadow: none !important;
+            padding: 6px 6px !important;
+        }
+        html[data-theme="clean"] .task-card:hover { background: #f1ead9 !important; }
+        html[data-theme="clean"] .task-meta { display: none !important; }
+        html[data-theme="clean"] .task-card p { color: #35332c !important; text-shadow: none !important; font-size: 0.95rem !important; }
+        html[data-theme="clean"] .task-check { display: inline-flex !important; align-items: center; color: #c0b6a0 !important; }
+        html[data-theme="clean"] .quadrant.q1 .task-check { color: #c07a63 !important; }
+        html[data-theme="clean"] .quadrant.q2 .task-check { color: #6d8a6d !important; }
+        html[data-theme="clean"] .task-check:hover { color: #2b2a26 !important; }
+        html[data-theme="clean"] .empty-state {
+            border: none !important; color: #b1a78f !important; text-align: left !important;
+            font-family: 'Inter', sans-serif !important; opacity: 1 !important; margin-top: 0 !important;
+        }
+
+        /* Modals */
+        html[data-theme="clean"] #modal, html[data-theme="clean"] #sync-modal { background: rgba(43,42,38,0.32) !important; }
+        html[data-theme="clean"] #modal-content,
+        html[data-theme="clean"] #sync-modal > div {
+            background: #fbf8f1 !important;
+            border: 1px solid #e6ddc9 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 20px 50px -20px rgba(43,42,38,0.35) !important;
+        }
+        html[data-theme="clean"] #modal-content > div.absolute,
+        html[data-theme="clean"] #sync-modal > div > div.absolute { display: none !important; }
+        html[data-theme="clean"] #modal-title { color: #26251f !important; font-weight: 600 !important; }
+        html[data-theme="clean"] #sync-modal h3 { color: #26251f !important; font-weight: 600 !important; }
+        html[data-theme="clean"] #sync-modal h3 i, html[data-theme="clean"] #modal-title i { color: #b4513a !important; }
+        html[data-theme="clean"] label { color: #8a8577 !important; font-weight: 500 !important; }
+        html[data-theme="clean"] #sync-modal p { color: #8a8577 !important; }
+        html[data-theme="clean"] #sync-modal p span { color: #b4513a !important; font-weight: 600 !important; }
+        html[data-theme="clean"] textarea,
+        html[data-theme="clean"] #sync-input {
+            background: #f6f1e6 !important;
+            border: 1px solid #e0d6c1 !important;
+            color: #2b2a26 !important;
+            border-radius: 6px !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+        }
+        html[data-theme="clean"] textarea:focus,
+        html[data-theme="clean"] #sync-input:focus {
+            border-color: #b4513a !important;
+            box-shadow: 0 0 0 3px rgba(180,81,58,0.15) !important;
+            background: #fffdf8 !important;
+        }
+        html[data-theme="clean"] textarea::placeholder,
+        html[data-theme="clean"] #sync-input::placeholder { color: #b7ad98 !important; }
+        html[data-theme="clean"] .dice-btn {
+            background: #f6f1e6 !important; border: 1px solid #e0d6c1 !important; color: #8a8577 !important; border-radius: 6px !important;
+        }
+        html[data-theme="clean"] .dice-btn:hover { color: #b4513a !important; border-color: #d6a08f !important; }
+
+        /* Buttons */
+        html[data-theme="clean"] .btn-primary {
+            background: #b4513a !important;
+            color: #fdf6f2 !important;
+            border: 1px solid #b4513a !important;
+            border-radius: 6px !important;
+            box-shadow: none !important;
+            font-weight: 600 !important;
+        }
+        html[data-theme="clean"] .btn-primary:hover { background: #9c4130 !important; border-color: #9c4130 !important; color: #fdf6f2 !important; }
+        html[data-theme="clean"] .btn-ghost { color: #8a8577 !important; border-color: transparent !important; border-radius: 6px !important; }
+        html[data-theme="clean"] .btn-ghost:hover { color: #2b2a26 !important; border-color: #e0d6c1 !important; background: #f2ece0 !important; }
+        html[data-theme="clean"] #sync-disconnect { color: #b4513a !important; border-radius: 6px !important; }
     </style>
 </head>
 <!-- MOBILE FIX: vertical centering only on desktop; on mobile content flows from the top and the page scrolls naturally -->
@@ -179,15 +352,24 @@
 
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 border-b border-spy-border pb-4 gap-3 md:gap-0 shrink-0">
-            <div>
+            <div id="head-left">
                 <h1 class="text-2xl md:text-4xl font-mono text-white tracking-widest uppercase flex items-center gap-3">
-                    <i class="ph-fill ph-crosshair text-spy-blue animate-pulse"></i>
-                    Operation Matrix
+                    <i id="brand-icon" class="ph-fill ph-crosshair text-spy-blue animate-pulse"></i>
+                    <span id="brand-text" data-spy="Operation Matrix" data-clean="Good morning">Operation Matrix</span>
                 </h1>
-                <p class="font-mono text-spy-text text-xs md:text-sm mt-1 tracking-wider opacity-70">CLASSIFIED DOSSIER // AGENT TASKING SYSTEM</p>
+                <p id="app-subtitle" class="font-mono text-spy-text text-xs md:text-sm mt-1 tracking-wider opacity-70"
+                   data-spy="CLASSIFIED DOSSIER // AGENT TASKING SYSTEM"
+                   data-clean="Organize what matters — then get it done.">CLASSIFIED DOSSIER // AGENT TASKING SYSTEM</p>
             </div>
             <div class="text-left md:text-right w-full md:w-auto">
-                <p class="font-mono text-spy-blue text-sm" id="clock">00:00:00</p>
+                <div class="flex items-center gap-2 md:justify-end">
+                    <!-- Theme switcher (remembered per device) -->
+                    <button id="theme-toggle" onclick="toggleTheme()" title="Switch theme"
+                            class="inline-flex items-center gap-1.5 font-mono text-[11px] md:text-xs tracking-wider text-spy-gray hover:text-white border border-spy-border hover:border-spy-blue/60 px-2 py-1 transition-colors">
+                        <i class="ph ph-palette"></i><span id="theme-label">Warm view</span>
+                    </button>
+                    <p class="font-mono text-spy-blue text-sm" id="clock">00:00:00</p>
+                </div>
                 <!-- Sync status / dossier control (tap to link or change codename) -->
                 <button id="dossier-chip" onclick="openSyncModal()" title="Manage secure dossier"
                         class="mt-1 inline-flex items-center gap-2 font-mono text-[11px] md:text-xs tracking-wider text-spy-gray hover:text-white border border-spy-border hover:border-spy-blue/60 px-2 py-1 transition-colors">
@@ -203,16 +385,19 @@
 
             <!-- Q1: Urgent & Important (DO) -->
             <!-- MOBILE FIX: min-h keeps the panel substantial on phones; md:min-h-0 lets it flex on desktop -->
-            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-red/50 hover:shadow-glow-red transition-all duration-300 relative group corner-borders">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-red/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q1')">
+            <div class="quadrant q1 flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-red/50 hover:shadow-glow-red transition-all duration-300 relative group corner-borders">
+                <div class="q-head p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-red/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q1')">
                     <h2 class="font-mono text-spy-red font-bold tracking-widest uppercase flex items-center gap-2 text-sm md:text-base">
-                        <i class="ph ph-warning-circle text-xl"></i> Execute Immediate
+                        <i class="ph ph-warning-circle text-xl"></i> <span data-spy="Execute Immediate" data-clean="Do now">Execute Immediate</span>
                     </h2>
                     <button class="text-spy-red hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
+                    <span class="q-count" id="count-q1"></span>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
+                <div class="q-sub p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0"
+                     data-spy="[URGENT + IMPORTANT] // Do it now. Crises, deadlines, critical problems."
+                     data-clean="Urgent and important — do it now.">
                     [URGENT + IMPORTANT] // Do it now. Crises, deadlines, critical problems.
                 </div>
                 <!-- MOBILE FIX: list grows naturally on mobile; only scrolls internally on desktop (md:overflow-y-auto) -->
@@ -222,16 +407,19 @@
             </div>
 
             <!-- Q2: Not Urgent & Important (SCHEDULE) -->
-            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-blue/50 hover:shadow-glow-blue transition-all duration-300 relative group corner-borders">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-blue/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q2')">
+            <div class="quadrant q2 flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-blue/50 hover:shadow-glow-blue transition-all duration-300 relative group corner-borders">
+                <div class="q-head p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-blue/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q2')">
                     <h2 class="font-mono text-spy-blue font-bold tracking-widest uppercase flex items-center gap-2 text-sm md:text-base">
-                        <i class="ph ph-calendar-check text-xl"></i> Strategic Planning
+                        <i class="ph ph-calendar-check text-xl"></i> <span data-spy="Strategic Planning" data-clean="Schedule">Strategic Planning</span>
                     </h2>
                     <button class="text-spy-blue hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
+                    <span class="q-count" id="count-q2"></span>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
+                <div class="q-sub p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0"
+                     data-spy="[NOT URGENT + IMPORTANT] // Schedule it. Strategy, relationships, growth."
+                     data-clean="Important, not urgent — schedule it.">
                     [NOT URGENT + IMPORTANT] // Schedule it. Strategy, relationships, growth.
                 </div>
                 <div class="flex-grow md:min-h-0 md:overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q2">
@@ -240,16 +428,19 @@
             </div>
 
             <!-- Q3: Urgent & Not Important (DELEGATE) -->
-            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-yellow/50 hover:shadow-glow-yellow transition-all duration-300 relative group corner-borders">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-yellow/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q3')">
+            <div class="quadrant q3 flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-yellow/50 hover:shadow-glow-yellow transition-all duration-300 relative group corner-borders">
+                <div class="q-head p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-yellow/10 to-transparent cursor-pointer shrink-0" onclick="openModal('q3')">
                     <h2 class="font-mono text-spy-yellow font-bold tracking-widest uppercase flex items-center gap-2 text-sm md:text-base">
-                        <i class="ph ph-users-three text-xl"></i> Delegate/Transfer
+                        <i class="ph ph-users-three text-xl"></i> <span data-spy="Delegate/Transfer" data-clean="Hand off">Delegate/Transfer</span>
                     </h2>
                     <button class="text-spy-yellow hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
+                    <span class="q-count" id="count-q3"></span>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
+                <div class="q-sub p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0"
+                     data-spy="[URGENT + NOT IMPORTANT] // Delegate it. Interruptions, meetings, requests."
+                     data-clean="Urgent, not important — delegate it.">
                     [URGENT + NOT IMPORTANT] // Delegate it. Interruptions, meetings, requests.
                 </div>
                 <div class="flex-grow md:min-h-0 md:overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q3">
@@ -258,16 +449,19 @@
             </div>
 
             <!-- Q4: Not Urgent & Not Important (DELETE) -->
-            <div class="quadrant flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-gray/80 hover:shadow-glow-gray transition-all duration-300 relative group corner-borders">
-                <div class="p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-gray/20 to-transparent cursor-pointer shrink-0" onclick="openModal('q4')">
+            <div class="quadrant q4 flex flex-col min-h-[260px] md:min-h-0 bg-spy-panel border border-spy-border hover:border-spy-gray/80 hover:shadow-glow-gray transition-all duration-300 relative group corner-borders">
+                <div class="q-head p-4 border-b border-spy-border/50 flex justify-between items-center bg-gradient-to-r from-spy-gray/20 to-transparent cursor-pointer shrink-0" onclick="openModal('q4')">
                     <h2 class="font-mono text-spy-gray font-bold tracking-widest uppercase flex items-center gap-2 text-white/70 text-sm md:text-base">
-                        <i class="ph ph-trash text-xl"></i> Eliminate/Discard
+                        <i class="ph ph-trash text-xl"></i> <span data-spy="Eliminate/Discard" data-clean="Let go">Eliminate/Discard</span>
                     </h2>
                     <button class="text-spy-gray hover:text-white transition-colors p-1" title="Add Intel">
                         <i class="ph ph-plus text-xl"></i>
                     </button>
+                    <span class="q-count" id="count-q4"></span>
                 </div>
-                <div class="p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0">
+                <div class="q-sub p-2 bg-spy-bg/50 border-b border-spy-border/30 text-xs text-spy-gray font-mono px-4 shrink-0"
+                     data-spy="[NOT URGENT + NOT IMPORTANT] // Avoid it. Distractions, time wasters."
+                     data-clean="Neither urgent nor important — skip it.">
                     [NOT URGENT + NOT IMPORTANT] // Avoid it. Distractions, time wasters.
                 </div>
                 <div class="flex-grow md:min-h-0 md:overflow-y-auto p-4 space-y-3 custom-scrollbar" id="list-q4">
@@ -294,16 +488,16 @@
             <input type="hidden" id="task-quadrant">
 
             <div class="mb-6 relative">
-                <label for="task-text" class="block font-mono text-xs text-spy-gray mb-2">OBJECTIVE DETAILS:</label>
-                <textarea id="task-text" rows="3" class="w-full bg-black/50 border border-spy-border focus:border-spy-blue text-white p-3 font-sans text-base md:text-sm focus:outline-none focus:ring-1 focus:ring-spy-blue transition-colors resize-none placeholder-spy-gray/50" placeholder="Enter classified intel here..."></textarea>
+                <label for="task-text" class="block font-mono text-xs text-spy-gray mb-2" data-spy="OBJECTIVE DETAILS:" data-clean="Task">OBJECTIVE DETAILS:</label>
+                <textarea id="task-text" rows="3" class="w-full bg-black/50 border border-spy-border focus:border-spy-blue text-white p-3 font-sans text-base md:text-sm focus:outline-none focus:ring-1 focus:ring-spy-blue transition-colors resize-none placeholder-spy-gray/50" placeholder="Enter classified intel here..." data-spy-ph="Enter classified intel here..." data-clean-ph="What needs doing?"></textarea>
             </div>
 
             <div class="flex justify-end gap-3 font-mono">
-                <button onclick="closeModal()" class="px-4 py-2 text-spy-gray hover:text-white border border-transparent hover:border-spy-gray transition-colors uppercase text-sm">
-                    Abort
+                <button onclick="closeModal()" class="btn-ghost px-4 py-2 text-spy-gray hover:text-white border border-transparent hover:border-spy-gray transition-colors uppercase text-sm">
+                    <span data-spy="Abort" data-clean="Cancel">Abort</span>
                 </button>
-                <button onclick="addTask()" class="px-4 py-2 bg-spy-blue/10 text-spy-blue border border-spy-blue hover:bg-spy-blue hover:text-black transition-all uppercase text-sm font-bold flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
-                    <i class="ph-bold ph-upload-simple"></i> Encrypt & Save
+                <button onclick="addTask()" class="btn-primary px-4 py-2 bg-spy-blue/10 text-spy-blue border border-spy-blue hover:bg-spy-blue hover:text-black transition-all uppercase text-sm font-bold flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
+                    <i class="ph-bold ph-upload-simple"></i> <span data-spy="Encrypt &amp; Save" data-clean="Save task">Encrypt &amp; Save</span>
                 </button>
             </div>
         </div>
@@ -318,20 +512,22 @@
             <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-spy-blue"></div>
 
             <h3 class="font-mono text-spy-blue text-xl mb-3 uppercase tracking-widest flex items-center gap-2">
-                <i class="ph-fill ph-fingerprint"></i> Secure Dossier Link
+                <i class="ph-fill ph-fingerprint"></i> <span data-spy="Secure Dossier Link" data-clean="Sync your tasks">Secure Dossier Link</span>
             </h3>
-            <p class="font-mono text-xs text-spy-gray mb-4 leading-relaxed">
+            <p class="font-mono text-xs text-spy-gray mb-4 leading-relaxed"
+               data-spy="Enter your <span class='text-spy-blue'>AGENT CODENAME</span> to sync this device. Use the <span class='text-white'>same codename</span> on your phone and desktop to share one dossier."
+               data-clean="Enter a <span>sync code</span> to link this device. Use the <span>same code</span> on your phone and computer to share one list.">
                 Enter your <span class="text-spy-blue">AGENT CODENAME</span> to sync this device.
                 Use the <span class="text-white">same codename</span> on your phone and desktop to share one dossier.
             </p>
 
-            <label for="sync-input" class="block font-mono text-xs text-spy-gray mb-2">AGENT CODENAME:</label>
+            <label for="sync-input" class="block font-mono text-xs text-spy-gray mb-2" data-spy="AGENT CODENAME:" data-clean="Sync code">AGENT CODENAME:</label>
             <div class="flex gap-2">
                 <input id="sync-input" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"
                        class="flex-grow bg-black/50 border border-spy-border focus:border-spy-blue text-white p-3 font-mono text-base md:text-sm tracking-widest uppercase focus:outline-none focus:ring-1 focus:ring-spy-blue transition-colors placeholder-spy-gray/50"
-                       placeholder="NIGHTHAWK-7F3A">
+                       placeholder="NIGHTHAWK-7F3A" data-spy-ph="NIGHTHAWK-7F3A" data-clean-ph="e.g. sunrise-2f9x">
                 <button onclick="generateCode()" title="Generate codename"
-                        class="px-3 border border-spy-border text-spy-gray hover:text-spy-blue hover:border-spy-blue transition-colors">
+                        class="dice-btn px-3 border border-spy-border text-spy-gray hover:text-spy-blue hover:border-spy-blue transition-colors">
                     <i class="ph ph-dice-five text-xl"></i>
                 </button>
             </div>
@@ -340,14 +536,14 @@
             <div class="flex items-center gap-3 mt-6 font-mono">
                 <button id="sync-disconnect" onclick="disconnectDossier()"
                         class="hidden px-3 py-2 text-spy-red/80 hover:text-spy-red border border-transparent hover:border-spy-red/50 transition-colors uppercase text-xs">
-                    Disconnect
+                    <span data-spy="Disconnect" data-clean="Disconnect">Disconnect</span>
                 </button>
                 <div class="flex gap-3 ml-auto">
-                    <button onclick="closeSyncModal()" class="px-4 py-2 text-spy-gray hover:text-white border border-transparent hover:border-spy-gray transition-colors uppercase text-sm">
-                        Cancel
+                    <button onclick="closeSyncModal()" class="btn-ghost px-4 py-2 text-spy-gray hover:text-white border border-transparent hover:border-spy-gray transition-colors uppercase text-sm">
+                        <span data-spy="Cancel" data-clean="Cancel">Cancel</span>
                     </button>
-                    <button onclick="submitSyncCode()" class="px-4 py-2 bg-spy-blue/10 text-spy-blue border border-spy-blue hover:bg-spy-blue hover:text-black transition-all uppercase text-sm font-bold flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
-                        <i class="ph-bold ph-link"></i> Establish Uplink
+                    <button onclick="submitSyncCode()" class="btn-primary px-4 py-2 bg-spy-blue/10 text-spy-blue border border-spy-blue hover:bg-spy-blue hover:text-black transition-all uppercase text-sm font-bold flex items-center gap-2 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
+                        <i class="ph-bold ph-link"></i> <span data-spy="Establish Uplink" data-clean="Connect">Establish Uplink</span>
                     </button>
                 </div>
             </div>
@@ -381,9 +577,12 @@
         let unsubscribe = null;     // active Firestore realtime listener
         const CODE_KEY = 'mi6_agent_code';
         const LOCAL_KEY = 'mi6_eisenhower_tasks';
+        const THEME_KEY = 'mi6_theme';
+        let currentStatusMode = 'standby';   // remembered so a theme switch can re-render the status text
 
         // ---- Boot ----
         window.onload = () => {
+            applyTheme(localStorage.getItem(THEME_KEY) || 'spy');
             startClock();
             bootSync();
 
@@ -460,27 +659,73 @@
             localStorage.setItem(LOCAL_KEY, JSON.stringify(tasks));
         }
 
-        // ---- Status indicator ----
+        // ==========================================
+        // THEME  (spy default / clean = Notion-like light). Remembered per device.
+        // ==========================================
+        const THEME_TEXT = {
+            empty: { spy: 'NO ACTIVE OBJECTIVES', clean: 'No tasks yet' },
+            del:   { spy: 'Eliminate Objective', clean: 'Delete task' }
+        };
+        function currentTheme() {
+            return document.documentElement.getAttribute('data-theme') || 'spy';
+        }
+        function t(key) {
+            const e = THEME_TEXT[key];
+            return e ? (e[currentTheme()] || e.spy) : '';
+        }
+        window.toggleTheme = function() {
+            applyTheme(currentTheme() === 'clean' ? 'spy' : 'clean');
+        };
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+            // Swap authored copy for the active theme (authored strings only — innerHTML is safe here)
+            document.querySelectorAll('[data-spy][data-clean]').forEach(el => {
+                el.innerHTML = el.getAttribute(theme === 'clean' ? 'data-clean' : 'data-spy');
+            });
+            document.querySelectorAll('[data-spy-ph][data-clean-ph]').forEach(el => {
+                el.setAttribute('placeholder', el.getAttribute(theme === 'clean' ? 'data-clean-ph' : 'data-spy-ph'));
+            });
+            const tl = document.getElementById('theme-label');
+            if (tl) tl.textContent = (theme === 'clean') ? 'Spy view' : 'Warm view';
+
+            // Warm theme shows a time-based greeting + the date as an eyebrow
+            if (theme === 'clean') {
+                const bt = document.getElementById('brand-text');
+                const sub = document.getElementById('app-subtitle');
+                const hr = new Date().getHours();
+                const greeting = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+                if (bt) bt.textContent = greeting;
+                if (sub) sub.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+            }
+            setStatus(currentStatusMode);   // refresh status text for the new theme
+            renderAllTasks();               // refresh dynamic task copy for the new theme
+        }
+
+        // ---- Status indicator (theme-aware copy) ----
         function setStatus(mode) {
+            currentStatusMode = mode;
+            const clean = currentTheme() === 'clean';
             const dot = document.getElementById('sync-dot');
             const txt = document.getElementById('sync-status');
             const chip = document.getElementById('dossier-chip');
             chip.classList.remove('border-spy-blue/60', 'border-spy-red/60', 'border-spy-yellow/60');
+            dot.style.color = '';
             if (mode === 'cloud') {
-                dot.className = 'text-spy-blue animate-pulse';
-                txt.textContent = 'UPLINK ACTIVE // ' + agentCode;
+                txt.textContent = (clean ? 'Synced · ' : 'UPLINK ACTIVE // ') + agentCode;
+                if (clean) { dot.className = ''; dot.style.color = '#2f9e44'; } else { dot.className = 'text-spy-blue animate-pulse'; }
                 chip.classList.add('border-spy-blue/60');
             } else if (mode === 'standby') {
-                dot.className = 'text-spy-yellow';
-                txt.textContent = 'NO DOSSIER — TAP TO LINK';
+                txt.textContent = clean ? 'Tap to set your sync code' : 'NO DOSSIER — TAP TO LINK';
+                if (clean) { dot.className = ''; dot.style.color = '#d9730d'; } else { dot.className = 'text-spy-yellow'; }
                 chip.classList.add('border-spy-yellow/60');
             } else if (mode === 'local') {
-                dot.className = 'text-spy-red';
-                txt.textContent = 'LOCAL MODE — NO UPLINK';
+                txt.textContent = clean ? 'Offline — saved on this device' : 'LOCAL MODE — NO UPLINK';
+                if (clean) { dot.className = ''; dot.style.color = '#e03e3e'; } else { dot.className = 'text-spy-red'; }
                 chip.classList.add('border-spy-red/60');
             } else if (mode === 'error') {
-                dot.className = 'text-spy-red animate-pulse';
-                txt.textContent = 'UPLINK ERROR — TAP TO RETRY';
+                txt.textContent = clean ? 'Sync error — tap to retry' : 'UPLINK ERROR — TAP TO RETRY';
+                if (clean) { dot.className = ''; dot.style.color = '#e03e3e'; } else { dot.className = 'text-spy-red animate-pulse'; }
                 chip.classList.add('border-spy-red/60');
             }
         }
@@ -488,10 +733,14 @@
         // ---- Clock ----
         function startClock() {
             const clockEl = document.getElementById('clock');
-            setInterval(() => {
+            const tick = () => {
                 const now = new Date();
-                clockEl.innerText = now.toTimeString().split(' ')[0] + " GMT";
-            }, 1000);
+                clockEl.innerText = (currentTheme() === 'clean')
+                    ? now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : now.toTimeString().split(' ')[0] + " GMT";
+            };
+            tick();
+            setInterval(tick, 1000);
         }
 
         // ==========================================
@@ -549,10 +798,10 @@
         const modalTitle = document.getElementById('modal-title');
 
         const quadrantConfig = {
-            'q1': { name: 'Execute Immediate', color: 'text-spy-red', border: 'border-spy-red', shadow: 'shadow-glow-red' },
-            'q2': { name: 'Strategic Planning', color: 'text-spy-blue', border: 'border-spy-blue', shadow: 'shadow-glow-blue' },
-            'q3': { name: 'Delegate/Transfer', color: 'text-spy-yellow', border: 'border-spy-yellow', shadow: 'shadow-glow-yellow' },
-            'q4': { name: 'Eliminate/Discard', color: 'text-spy-gray', border: 'border-spy-gray', shadow: 'shadow-glow-gray' }
+            'q1': { name: 'Execute Immediate', cleanName: 'Do now', color: 'text-spy-red', border: 'border-spy-red', shadow: 'shadow-glow-red' },
+            'q2': { name: 'Strategic Planning', cleanName: 'Schedule', color: 'text-spy-blue', border: 'border-spy-blue', shadow: 'shadow-glow-blue' },
+            'q3': { name: 'Delegate/Transfer', cleanName: 'Hand off', color: 'text-spy-yellow', border: 'border-spy-yellow', shadow: 'shadow-glow-yellow' },
+            'q4': { name: 'Eliminate/Discard', cleanName: 'Let go', color: 'text-spy-gray', border: 'border-spy-gray', shadow: 'shadow-glow-gray' }
         };
 
         window.openModal = function(quadrant) {
@@ -560,7 +809,9 @@
             taskInput.value = '';
 
             const config = quadrantConfig[quadrant];
-            modalTitle.innerHTML = `<i class="ph-fill ph-terminal-window"></i> INPUT: ${config.name}`;
+            modalTitle.innerHTML = (currentTheme() === 'clean')
+                ? `<i class="ph ph-plus-circle"></i> Add to ${config.cleanName}`
+                : `<i class="ph-fill ph-terminal-window"></i> INPUT: ${config.name}`;
             modalTitle.className = `font-mono ${config.color} text-xl mb-4 uppercase tracking-widest flex items-center gap-2`;
             modalContent.className = `bg-spy-panel border ${config.border} p-6 w-full max-w-md ${config.shadow} relative transform transition-all duration-300 scale-100 opacity-100`;
 
@@ -661,10 +912,15 @@
             const quadrantTasks = tasks.filter(t => t.quadrant === quadrant)
                                        .sort((a, b) => b.timestamp - a.timestamp);
 
+            const countEl = document.getElementById('count-' + quadrant);
+            if (countEl) countEl.textContent = quadrantTasks.length;
+
             if (quadrantTasks.length === 0) {
-                container.innerHTML = `<div class="text-spy-gray font-mono text-xs opacity-50 text-center mt-4 border border-dashed border-spy-border p-4">NO ACTIVE OBJECTIVES</div>`;
+                container.innerHTML = `<div class="empty-state text-spy-gray font-mono text-xs opacity-50 text-center mt-4 border border-dashed border-spy-border p-4">${t('empty')}</div>`;
                 return;
             }
+
+            const clean = currentTheme() === 'clean';
 
             quadrantTasks.forEach(task => {
                 const colors = {
@@ -675,21 +931,32 @@
                 };
 
                 const el = document.createElement('div');
-                el.className = `task-enter group bg-black/40 border-l-2 ${colors[quadrant]} p-3 pr-10 relative flex flex-col transition-all duration-200`;
+                el.className = `task-card task-enter group bg-black/40 border-l-2 ${colors[quadrant]} p-3 pr-10 relative flex items-start gap-3 transition-all duration-200`;
 
                 const date = new Date(task.timestamp);
-                const timeString = `${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}HRS`;
+                let metaLeft = '', metaRight = '';
+                if (clean) {
+                    metaRight = date.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                } else {
+                    metaLeft = 'ID:' + task.id.toString().slice(-6);
+                    metaRight = `${date.getHours().toString().padStart(2, '0')}${date.getMinutes().toString().padStart(2, '0')}HRS`;
+                }
 
                 el.innerHTML = `
-                    <div class="font-mono text-[10px] text-spy-gray mb-1 opacity-70 tracking-widest flex items-center justify-between">
-                        <span>ID:${task.id.toString().slice(-6)}</span>
-                        <span>${timeString}</span>
+                    <button class="task-check shrink-0 mt-0.5 leading-none" onclick="deleteTask('${task.id}')" title="Mark done" aria-label="Mark done">
+                        <i class="ph ph-circle text-lg"></i>
+                    </button>
+                    <div class="task-body flex flex-col flex-grow min-w-0">
+                        <div class="task-meta font-mono text-[10px] text-spy-gray mb-1 opacity-70 tracking-widest flex items-center justify-between">
+                            <span>${metaLeft}</span>
+                            <span>${metaRight}</span>
+                        </div>
+                        <p class="text-sm font-sans leading-relaxed text-shadow-sm">${escapeHTML(task.text)}</p>
                     </div>
-                    <p class="text-sm font-sans leading-relaxed text-shadow-sm">${escapeHTML(task.text)}</p>
-                    <button onclick="deleteTask('${task.id}')" class="absolute right-3 top-1/2 -translate-y-1/2 text-spy-gray hover:text-spy-red opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200" title="Eliminate Objective">
+                    <button onclick="deleteTask('${task.id}')" class="task-x absolute right-3 top-1/2 -translate-y-1/2 text-spy-gray hover:text-spy-red opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200" title="${t('del')}">
                         <i class="ph-bold ph-x-circle text-xl"></i>
                     </button>
-                    <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[length:100%_4px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="card-fx absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[length:100%_4px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 `;
                 container.appendChild(el);
             });
