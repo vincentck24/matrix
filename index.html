@@ -132,9 +132,8 @@
             animation: fadeIn 0.3s ease-out forwards;
         }
 
-        /* Check-off circle + completed styling (both themes) */
-        .task-check { display: inline-flex; align-items: center; color: #4b5563; transition: color .2s; }
-        .task-check:hover { color: #e5e7eb; }
+        /* Check-off circle: hidden in spy (unchanged look); the warm theme reveals it */
+        .task-check { display: none; align-items: center; transition: color .2s; }
         .task-done p { text-decoration: line-through; opacity: 0.5; }
         .q-count { display: none; }
         .col-label, .row-label { display: none; }
