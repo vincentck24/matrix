@@ -132,9 +132,12 @@
             animation: fadeIn 0.3s ease-out forwards;
         }
 
-        /* Checklist circle is spy-hidden; the warm theme reveals it (see data-theme="clean") */
-        .task-check { display: none; }
+        /* Check-off circle + completed styling (both themes) */
+        .task-check { display: inline-flex; align-items: center; color: #4b5563; transition: color .2s; }
+        .task-check:hover { color: #e5e7eb; }
+        .task-done p { text-decoration: line-through; opacity: 0.5; }
         .q-count { display: none; }
+        .col-label, .row-label { display: none; }
 
         /* Glitch text effect for hover */
         .glitch-hover:hover {
@@ -196,7 +199,7 @@
         html[data-theme="clean"] #clock { display: none !important; }
         html[data-theme="clean"] #brand-icon { display: none !important; }
         html[data-theme="clean"] .q-sub { display: none !important; }
-        html[data-theme="clean"] .task-x { display: none !important; }
+        html[data-theme="clean"] .task-x { color: #b7ad98 !important; }
         html[data-theme="clean"] .q-head > button { display: none !important; }
 
         /* Warm scrollbars */
@@ -281,6 +284,35 @@
         html[data-theme="clean"] .quadrant.q1 .task-check { color: #c07a63 !important; }
         html[data-theme="clean"] .quadrant.q2 .task-check { color: #6d8a6d !important; }
         html[data-theme="clean"] .task-check:hover { color: #2b2a26 !important; }
+        html[data-theme="clean"] .task-done p { color: #ab9f88 !important; opacity: 1 !important; }
+        html[data-theme="clean"] .task-done .task-check { color: #8faa7f !important; }
+
+        /* Eisenhower axis labels — warm theme, shown on desktop only */
+        html[data-theme="clean"] .col-label,
+        html[data-theme="clean"] .row-label {
+            color: #b1a78f !important; text-transform: uppercase; letter-spacing: 0.14em;
+            font-size: 0.68rem; font-weight: 500; font-family: 'Inter', sans-serif;
+        }
+        html[data-theme="clean"] .col-label { align-items: flex-end; padding: 0 0 6px 2px; }
+        html[data-theme="clean"] .row-label { align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); }
+        @media (min-width: 768px) {
+            html[data-theme="clean"] main {
+                display: grid !important;
+                grid-template-columns: 1.5rem 1fr 1fr !important;
+                grid-template-rows: auto 1fr 1fr !important;
+                column-gap: 1rem !important; row-gap: 1rem !important;
+            }
+            html[data-theme="clean"] .col-label,
+            html[data-theme="clean"] .row-label { display: flex !important; }
+            html[data-theme="clean"] #col-urgent { grid-column: 2; grid-row: 1; }
+            html[data-theme="clean"] #col-noturgent { grid-column: 3; grid-row: 1; }
+            html[data-theme="clean"] #row-important { grid-column: 1; grid-row: 2; }
+            html[data-theme="clean"] #row-lessimportant { grid-column: 1; grid-row: 3; }
+            html[data-theme="clean"] .quadrant.q1 { grid-column: 2; grid-row: 2; }
+            html[data-theme="clean"] .quadrant.q2 { grid-column: 3; grid-row: 2; }
+            html[data-theme="clean"] .quadrant.q3 { grid-column: 2; grid-row: 3; }
+            html[data-theme="clean"] .quadrant.q4 { grid-column: 3; grid-row: 3; }
+        }
         html[data-theme="clean"] .empty-state {
             border: none !important; color: #b1a78f !important; text-align: left !important;
             font-family: 'Inter', sans-serif !important; opacity: 1 !important; margin-top: 0 !important;
@@ -382,6 +414,12 @@
         <!-- Matrix Grid -->
         <!-- MOBILE FIX: simple stacked grid that grows with content (page scrolls). Desktop: fills the dashboard and clips so each quadrant scrolls internally -->
         <main class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2 md:pb-0 md:flex-grow md:min-h-0 md:overflow-hidden">
+
+            <!-- Eisenhower axis labels (warm theme, desktop only) -->
+            <div class="col-label" id="col-urgent">Urgent</div>
+            <div class="col-label" id="col-noturgent">Not urgent</div>
+            <div class="row-label" id="row-important">Important</div>
+            <div class="row-label" id="row-lessimportant">Less important</div>
 
             <!-- Q1: Urgent & Important (DO) -->
             <!-- MOBILE FIX: min-h keeps the panel substantial on phones; md:min-h-0 lets it flex on desktop -->
@@ -898,6 +936,26 @@
             }
         };
 
+        // Check a task off (or un-check it). Completed tasks stay, shown struck-through.
+        window.toggleDone = async function(id) {
+            id = id.toString();
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            const newDone = !task.done;
+            if (cloudReady && agentCode) {
+                try {
+                    const docRef = doc(db, 'dossiers', agentCode, 'tasks', id);
+                    await setDoc(docRef, { done: newDone }, { merge: true });   // realtime listener will re-render
+                } catch (e) {
+                    console.error("Toggle failed", e);
+                }
+            } else {
+                task.done = newDone;
+                saveLocal();
+                renderQuadrant(task.quadrant);
+            }
+        };
+
         // ==========================================
         // Rendering
         // ==========================================
@@ -910,10 +968,10 @@
             container.innerHTML = '';
 
             const quadrantTasks = tasks.filter(t => t.quadrant === quadrant)
-                                       .sort((a, b) => b.timestamp - a.timestamp);
+                                       .sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || b.timestamp - a.timestamp);
 
             const countEl = document.getElementById('count-' + quadrant);
-            if (countEl) countEl.textContent = quadrantTasks.length;
+            if (countEl) countEl.textContent = quadrantTasks.filter(x => !x.done).length;
 
             if (quadrantTasks.length === 0) {
                 container.innerHTML = `<div class="empty-state text-spy-gray font-mono text-xs opacity-50 text-center mt-4 border border-dashed border-spy-border p-4">${t('empty')}</div>`;
@@ -931,7 +989,7 @@
                 };
 
                 const el = document.createElement('div');
-                el.className = `task-card task-enter group bg-black/40 border-l-2 ${colors[quadrant]} p-3 pr-10 relative flex items-start gap-3 transition-all duration-200`;
+                el.className = `task-card task-enter group bg-black/40 border-l-2 ${colors[quadrant]} p-3 pr-10 relative flex items-start gap-3 transition-all duration-200${task.done ? ' task-done' : ''}`;
 
                 const date = new Date(task.timestamp);
                 let metaLeft = '', metaRight = '';
@@ -943,8 +1001,8 @@
                 }
 
                 el.innerHTML = `
-                    <button class="task-check shrink-0 mt-0.5 leading-none" onclick="deleteTask('${task.id}')" title="Mark done" aria-label="Mark done">
-                        <i class="ph ph-circle text-lg"></i>
+                    <button class="task-check shrink-0 mt-0.5 leading-none" onclick="toggleDone('${task.id}')" title="${task.done ? 'Mark not done' : 'Mark done'}" aria-label="Toggle done">
+                        <i class="ph ${task.done ? 'ph-check-circle' : 'ph-circle'} text-lg"></i>
                     </button>
                     <div class="task-body flex flex-col flex-grow min-w-0">
                         <div class="task-meta font-mono text-[10px] text-spy-gray mb-1 opacity-70 tracking-widest flex items-center justify-between">
